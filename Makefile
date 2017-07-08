@@ -66,6 +66,7 @@ HCI_NAME = usb
 _OS_INTFS_FILES :=				\
 			os_dep/ioctl_linux.o	\
 			os_dep/mlme_linux.o	\
+                        os_dep/mon.o            \
 			os_dep/os_intfs.o	\
 			os_dep/osdep_service.o	\
 			os_dep/recv_linux.o	\

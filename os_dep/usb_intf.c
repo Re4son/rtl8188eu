@@ -26,6 +26,7 @@
 #include <hal_intf.h>
 #include <rtw_version.h>
 #include <linux/usb.h>
+#include <mon.h>
 #include <osdep_intf.h>
 
 #include <usb_vendor_req.h>
@@ -612,6 +613,7 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 {
 	struct adapter *padapter = NULL;
 	struct net_device *pnetdev = NULL;
+        struct net_device *pmondev;
 	int status = _FAIL;
 
 	padapter = (struct adapter *)rtw_zvmalloc(sizeof(*padapter));
@@ -636,6 +638,13 @@ static struct adapter *rtw_usb_if1_init(struct dvobj_priv *dvobj,
 		goto handle_dualmac;
 	SET_NETDEV_DEV(pnetdev, dvobj_to_dev(dvobj));
 	padapter = rtw_netdev_priv(pnetdev);
+
+        if (padapter->registrypriv.monitor_enable) {
+                pmondev = rtl88eu_mon_init();
+                if (pmondev == NULL)
+                        netdev_warn(pnetdev, "Failed to initialize monitor interface");
+                padapter->pmondev = pmondev;
+        }
 
 	/* step 2. hook HalFunc, allocate HalData */
 	hal_set_hal_ops(padapter);
@@ -741,6 +750,7 @@ static void rtw_usb_if1_deinit(struct adapter *if1)
 			rtw_proc_remove_one(pnetdev);
 		}
 	}
+        rtl88eu_mon_deinit(if1->pmondev);
 	rtw_cancel_all_timer(if1);
 
 	rtw_dev_unload(if1);
